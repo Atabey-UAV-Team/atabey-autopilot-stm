@@ -46,6 +46,7 @@
 #define AHRS_R_MEAS          0.030f
 
 /* ---- Receiver Input Channels ---- */
+#define RC_CHANNEL_COUNT     4
 #define ROLL_CH              TIM_CHANNEL_1
 #define PITCH_CH             TIM_CHANNEL_2
 #define THROTTLE_CH          TIM_CHANNEL_3

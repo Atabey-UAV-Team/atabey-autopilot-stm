@@ -1,51 +1,48 @@
 #include "servo.h"
-#include "../config.h"
-#include "../utils/math_utils.h"
+#include "config.h"
 
-#include "stm32f4xx_hal.h"
-#include "tim.h"   /* declares extern TIM_HandleTypeDef PWM_TIM_HANDLE */
+#define SERVO_MIN_US 1000U
+#define SERVO_MAX_US 2000U
 
-const float us_per_deg = (SERVO_US_MAX - SERVO_US_MIN) / 180.0f;
-
-static inline uint32_t angle_to_us(float deg)
+static uint16_t servo_limit(uint16_t value)
 {
-    deg = constrainf(deg, -20.0f, 20.0f);
-    float us = SERVO_US_MID + deg * us_per_deg;
+    if (value < SERVO_MIN_US)
+    {
+        return SERVO_MIN_US;
+    }
 
-    return (uint32_t)us;
+    if (value > SERVO_MAX_US)
+    {
+        return SERVO_MAX_US;
+    }
+
+    return value;
 }
 
-/*
-static inline uint32_t norm_to_us(float n)
+void pwm_output_init(
+    servo_output_t *servo,
+    TIM_HandleTypeDef *htim,
+    uint32_t channel)
 {
-    n = constrainf(n, -1.0f, 1.0f);
-    int32_t us = (int32_t)(SERVO_US_MID + n * (int32_t)(SERVO_US_MAX - SERVO_US_MID));
-    return (uint32_t)constraini(us, (int32_t)SERVO_US_MIN, (int32_t)SERVO_US_MAX);
-}
-*/
+    servo->htim = htim;
+    servo->channel = channel;
 
-void pwm_init(void)
-{
-    HAL_TIM_PWM_Start(&PWM_TIM_HANDLE, PWM_CH_LEFT);
-    HAL_TIM_PWM_Start(&PWM_TIM_HANDLE, PWM_CH_RIGHT);
-    pwm_failsafe();
+    HAL_TIM_PWM_Start(
+        servo->htim,
+        servo->channel
+    );
 }
 
-void pwm_write(const elevon_cmd_t *cmd)
+void pwm_write_us(
+    servo_output_t *servo,
+    uint16_t pulse_us)
 {
-    uint32_t us_left_elevon = angle_to_us(cmd->left);
-    uint32_t us_right_elevon = angle_to_us(cmd->right);
-    __HAL_TIM_SET_COMPARE(&PWM_TIM_HANDLE, PWM_CH_LEFT,  us_lefts_elevon);
-    __HAL_TIM_SET_COMPARE(&PWM_TIM_HANDLE, PWM_CH_RIGHT, us_right_elevon);
-}
+    pulse_us =
+        servo_limit(pulse_us);
 
-void pwm_failsafe(void)
-{
-    __HAL_TIM_SET_COMPARE(&PWM_TIM_HANDLE, PWM_CH_LEFT,  SERVO_US_MID);
-    __HAL_TIM_SET_COMPARE(&PWM_TIM_HANDLE, PWM_CH_RIGHT, SERVO_US_MID);
-}
-
-void elevon_mixing(rc_cmd_t *cmd)
-{
-
+    __HAL_TIM_SET_COMPARE(
+        servo->htim,
+        servo->channel,
+        pulse_us
+    );
 }
