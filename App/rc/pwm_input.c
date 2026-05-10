@@ -30,11 +30,9 @@ static void pwm_process_channel(TIM_HandleTypeDef *htim,
 								uint32_t tim_channel,
 								uint8_t pwm_channel)
 {
-    uint32_t now =
-        HAL_TIM_ReadCapturedValue(htim, tim_channel);
+    uint32_t now = HAL_TIM_ReadCapturedValue(htim, tim_channel);
 
-    GPIO_PinState pin =
-        pwm_read_pin(pwm_channel);
+    GPIO_PinState pin = pwm_read_pin(pwm_channel);
 
     /*
         BOTH EDGE MODE
@@ -44,17 +42,9 @@ static void pwm_process_channel(TIM_HandleTypeDef *htim,
     */
 
     if (pin == GPIO_PIN_SET)
-    {
         s_rise_time[pwm_channel] = now;
-    }
     else
-    {
-        s_pulse_width[pwm_channel] =
-            (uint16_t)(
-                now -
-                s_rise_time[pwm_channel]
-            );
-    }
+        s_pulse_width[pwm_channel] = (uint16_t)(now - s_rise_time[pwm_channel]);
 }
 
 void pwm_input_init(TIM_HandleTypeDef *htim)
@@ -72,35 +62,27 @@ void pwm_input_capture_callback(TIM_HandleTypeDef *htim)
     switch (htim->Channel)
     {
         case HAL_TIM_ACTIVE_CHANNEL_1:
-            pwm_process_channel(
-                htim,
-                TIM_CHANNEL_1,
-                0
-            );
+            pwm_process_channel(htim,
+								TIM_CHANNEL_1,
+								0);
             break;
 
         case HAL_TIM_ACTIVE_CHANNEL_2:
-            pwm_process_channel(
-                htim,
-                TIM_CHANNEL_2,
-                1
-            );
+            pwm_process_channel(htim,
+								TIM_CHANNEL_2,
+								1);
             break;
 
         case HAL_TIM_ACTIVE_CHANNEL_3:
-            pwm_process_channel(
-                htim,
-                TIM_CHANNEL_3,
-                2
-            );
+            pwm_process_channel(htim,
+								TIM_CHANNEL_3,
+								2);
             break;
 
         case HAL_TIM_ACTIVE_CHANNEL_4:
-            pwm_process_channel(
-                htim,
-                TIM_CHANNEL_4,
-                3
-            );
+            pwm_process_channel(htim,
+								TIM_CHANNEL_4,
+								3);
             break;
 
         default:

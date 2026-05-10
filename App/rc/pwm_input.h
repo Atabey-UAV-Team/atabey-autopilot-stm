@@ -1,5 +1,6 @@
-#ifndef DRIVERS_PWM_INPUT_H
-#define DRIVERS_PWM_INPUT_H
+#ifndef APP_RC_PWM_INPUT_H
+#define APP_RC_PWM_INPUT_H
+
 #include "config.h"
 #include "stm32f4xx_hal.h"
 #include <stdint.h>

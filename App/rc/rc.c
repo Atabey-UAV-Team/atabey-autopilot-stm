@@ -14,7 +14,7 @@ static bool s_failsafe = true;
 
 static float apply_deadband(float x)
 {
-    if (x > -RC_DEADBAND && x <  RC_DEADBAND)
+    if (x > -RC_DEADBAND && x < RC_DEADBAND)
     {
         return 0.0f;
     }
@@ -24,7 +24,13 @@ static float apply_deadband(float x)
 
 static float normalize_center(uint16_t x)
 {
-    float v =( (float)x - SERVO_US_MID) / (SERVO_US_MAX - SERVO_US_MID);
+    float v =( (float)x - RC_US_MID) / (RC_US_MAX - RC_US_MID);
+
+    if (v < -1.0f)
+		v = -1.0f;
+
+	if (v > 1.0f)
+		v = 1.0f;
 
     return apply_deadband(v);
 }
@@ -62,17 +68,17 @@ void rc_update(void)
     uint32_t now =
         HAL_GetTick();
 
-    if (s_raw.roll_raw < 900U ||
-        s_raw.roll_raw > 2100U ||
+    if (s_raw.roll_raw < RC_VALID_MIN ||
+        s_raw.roll_raw > RC_VALID_MAX ||
 
-        s_raw.pitch_raw < 900U ||
-        s_raw.pitch_raw > 2100U ||
+        s_raw.pitch_raw < RC_VALID_MIN ||
+        s_raw.pitch_raw > RC_VALID_MAX ||
 
-        s_raw.yaw_raw < 900U ||
-        s_raw.yaw_raw > 2100U ||
+        s_raw.yaw_raw < RC_VALID_MIN ||
+        s_raw.yaw_raw > RC_VALID_MAX ||
 
-        s_raw.throttle_raw < 900U ||
-        s_raw.throttle_raw > 2100U)
+        s_raw.throttle_raw < RC_VALID_MIN ||
+        s_raw.throttle_raw > RC_VALID_MAX)
     {
         s_failsafe = true;
         return;

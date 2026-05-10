@@ -51,5 +51,10 @@
 #define PITCH_CH             TIM_CHANNEL_2
 #define THROTTLE_CH          TIM_CHANNEL_3
 #define YAW_CH               TIM_CHANNEL_4
+#define RC_US_MIN            1000U
+#define RC_US_MID            1500U
+#define RC_US_MAX            2000U
+#define RC_VALID_MIN         900U
+#define RC_VALID_MAX         2100U
 
 #endif /* APP_CONFIG_H */
