@@ -1,5 +1,5 @@
 #include "control.h"
-#include "../config.h"
+#include "config.h"
 #include "../utils/math_utils.h"
 
 typedef struct {

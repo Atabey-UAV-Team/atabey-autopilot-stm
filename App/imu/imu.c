@@ -1,10 +1,10 @@
 #include "imu.h"
-#include "../config.h"
+#include "config.h"
 #include "../utils/time.h"
 #include "../utils/math_utils.h"
 
 #include "stm32f4xx_hal.h"
-#include "i2c.h"   /* declares extern I2C_HandleTypeDef IMU_I2C_HANDLE */
+// #include "i2c.h"   /* declares extern I2C_HandleTypeDef IMU_I2C_HANDLE */
 
 // MPU6050 register map (subset)
 #define MPU_REG_SMPLRT_DIV   0x19
