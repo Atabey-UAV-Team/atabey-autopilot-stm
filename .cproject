@@ -81,6 +81,12 @@
                                     									
                                     <listOptionValue builtIn="false" value="../Core/Inc"/>
                                     									
+                                    <listOptionValue builtIn="false" value="../App/ahrs"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../App/imu"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="../App/control"/>
+                                    									
                                     <listOptionValue builtIn="false" value="../App/config"/>
                                     									
                                     <listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc"/>
@@ -347,6 +353,20 @@
         	
     </storageModule>
     	
-    <storageModule moduleId="refreshScope"/>
+    <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="Debug">
+            			
+            <resource resourceType="PROJECT" workspacePath="/atabey-autopilot-stm"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/atabey-autopilot-stm"/>
+            		
+        </configuration>
+        	
+    </storageModule>
     
 </cproject>

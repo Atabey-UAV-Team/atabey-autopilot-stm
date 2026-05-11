@@ -25,6 +25,8 @@
 #include "math_utils.h"
 #include "rc.h"
 #include "servo.h"
+#include "control.h"
+#include "ahrs.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +60,10 @@ servo_output_t elevon_right;
 servo_output_t throttle_output;
 
 float left_mix, right_mix;
-uint16_t left_pwm, right_pwm, throttle_pwm;
+uint16_t left_pwm, right_pwm, pitch_in, roll_in, throttle_pwm;
+float pitch_command, roll_command, throttle_command, prev_pitch = 0, prev_roll = 0;
+
+AttitudeController ctrl;
 
 /* USER CODE END PV */
 
@@ -109,6 +114,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
+
   MX_TIM3_Init();
   MX_TIM1_Init();
   MX_I2C1_Init();
@@ -128,6 +134,8 @@ int main(void)
   servo_init(&elevon_right, &htim3, PWM_CH_RIGHT);
   servo_init(&throttle_output, &htim1, TIM_CHANNEL_2);
 
+  init_controller(&ctrl);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,24 +144,58 @@ int main(void)
   {
 	  rc_update();
 
-	  if (rc_is_failsafe())
-	  {
-	      servo_write_us(&elevon_left, SERVO_US_MID);
-	      servo_write_us(&elevon_right, SERVO_US_MID);
-	      servo_write_us(&throttle_output, SERVO_US_MIN);
-	      continue;
-	  }
+//	  if (rc_is_failsafe())
+//	  {
+//	      servo_write_us(&elevon_left, SERVO_US_MID);
+//	      servo_write_us(&elevon_right, SERVO_US_MID);
+//	      servo_write_us(&throttle_output, SERVO_US_MIN);
+//	      continue;
+//	  }
 
 	  const rc_cmd_t *cmd = rc_get_cmd();
-	  left_mix  = cmd->pitch_cmd + cmd->roll_cmd;
-	  right_mix = cmd->pitch_cmd - cmd->roll_cmd;
+	  const float alpha = 0.6;
+	  pitch_in  = (uint16_t) (1500.0f + cmd->pitch_cmd  * 500.0f);
+	  roll_in = (uint16_t) (1500.0f + cmd->roll_cmd * 500.0f);
 
-	  left_mix  = constrainf(left_mix, -1, 1);
-	  right_mix = constrainf(right_mix, -1, 1);
+	  pitch_command = (pitch_in + roll_in - 2758)*0.4/560;
+	  roll_command = (-pitch_in + roll_in - 77)*0.4/560 ;
+	  throttle_command = ((float) (1000.0f +cmd->throttle_cmd  * 1000.0f)-1000.0)/880.0;
 
-	  left_pwm  = (uint16_t) (1500.0f + left_mix  * 500.0f);
-	  right_pwm = (uint16_t) (1500.0f + right_mix * 500.0f);
-	  throttle_pwm = (uint16_t) (1000.0f + cmd->throttle_cmd * 1000.0f);
+	  pitch_command = alpha*prev_pitch + (1-alpha)*pitch_command;
+	  if ((-0.03 < pitch_command) &&  (pitch_command < 0.03)) pitch_command = 0.0f;
+	  prev_pitch = pitch_command;
+
+
+	  roll_command = alpha*prev_roll + (1-alpha)*roll_command;
+	  if ((-0.03 < roll_command) &&  (roll_command < 0.03)) roll_command = 0.0f;
+	  prev_roll = roll_command;
+
+	  //roll ve pitch sensörden gelecek
+	  float roll = 0.0f;
+	  float pitch = 0.0f;
+	  float dt = 0.01f;   // for now, assuming 100 Hz loop
+
+	  ControlOutput out = attitude_controller_update(
+	      &ctrl,
+	      roll,
+	      pitch,
+	      roll_command,
+	      pitch_command,
+	      throttle_command,
+	      dt
+	  );
+
+	  float elevator_cmd = out.elevator;
+	  float aileron_cmd  = out.aileron;
+
+
+
+	  left_mix  = elevator_cmd + aileron_cmd;
+	  right_mix = elevator_cmd - aileron_cmd;
+
+	  left_pwm = (uint16_t)(1500.0f + left_mix * 500.0f);
+	  right_pwm = (uint16_t)(1500.0f + right_mix * 500.0f);
+	  throttle_pwm = (uint16_t)(1000.0f + cmd->throttle_cmd * 1000.0f);
 
 	  servo_write_us(&elevon_left, left_pwm);
 	  servo_write_us(&elevon_right, right_pwm);
