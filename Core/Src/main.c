@@ -63,6 +63,8 @@ float left_mix, right_mix;
 uint16_t left_pwm, right_pwm, pitch_in, roll_in, throttle_pwm;
 float pitch_command, roll_command, throttle_command, prev_pitch = 0, prev_roll = 0;
 
+attitude_t attitude;
+imu_data_t imu_value;
 AttitudeController ctrl;
 
 /* USER CODE END PV */
@@ -135,6 +137,8 @@ int main(void)
   servo_init(&throttle_output, &htim1, TIM_CHANNEL_2);
 
   init_controller(&ctrl);
+  imu_init();
+  ahrs_init();
 
   /* USER CODE END 2 */
 
@@ -170,9 +174,12 @@ int main(void)
 	  if ((-0.03 < roll_command) &&  (roll_command < 0.03)) roll_command = 0.0f;
 	  prev_roll = roll_command;
 
+	  imu_read(&imu_value);
+	  ahrs_update(&imu_value, imu_value.timestamp_us);
+
 	  //roll ve pitch sensörden gelecek
-	  float roll = 0.0f;
-	  float pitch = 0.0f;
+	  float roll = attitude.roll;
+	  float pitch = attitude.pitch;
 	  float dt = 0.01f;   // for now, assuming 100 Hz loop
 
 	  ControlOutput out = attitude_controller_update(
