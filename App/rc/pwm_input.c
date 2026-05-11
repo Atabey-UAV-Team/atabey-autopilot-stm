@@ -54,10 +54,11 @@ void pwm_input_init(TIM_HandleTypeDef *htim)
 
 void pwm_input_capture_callback(TIM_HandleTypeDef *htim)
 {
-    if (htim->Instance != s_tim->Instance)
-    {
-        return;
-    }
+	if ((s_tim == NULL) || (htim == NULL))
+		return;
+
+	if (htim->Instance != s_tim->Instance)
+		return;
 
     switch (htim->Channel)
     {

@@ -124,8 +124,8 @@ int main(void)
 
   rc_init();
 
-  servo_init(&elevon_left,  &htim3, TIM_CHANNEL_1);
-  servo_init(&elevon_right, &htim3, TIM_CHANNEL_2);
+  servo_init(&elevon_left,  &htim3, PWM_CH_LEFT);
+  servo_init(&elevon_right, &htim3, PWM_CH_RIGHT);
   servo_init(&throttle_output, &htim1, TIM_CHANNEL_2);
 
   /* USER CODE END 2 */
@@ -135,6 +135,15 @@ int main(void)
   while (1)
   {
 	  rc_update();
+
+	  if (rc_is_failsafe())
+	  {
+	      servo_write_us(&elevon_left, SERVO_US_MID);
+	      servo_write_us(&elevon_right, SERVO_US_MID);
+	      servo_write_us(&throttle_output, SERVO_US_MIN);
+	      continue;
+	  }
+
 	  const rc_cmd_t *cmd = rc_get_cmd();
 	  left_mix  = cmd->pitch_cmd + cmd->roll_cmd;
 	  right_mix = cmd->pitch_cmd - cmd->roll_cmd;
